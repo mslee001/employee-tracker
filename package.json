@@ -1,0 +1,28 @@
+{
+  "name": "employee-tracker",
+  "version": "1.0.0",
+  "description": "Employee Tracker",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node run index.js",
+    "watch": "nodemon index.js "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mslee001/employee-tracker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mslee001/employee-tracker/issues"
+  },
+  "homepage": "https://github.com/mslee001/employee-tracker#readme",
+  "dependencies": {
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+    },
+    "devDependencies": {  
+      "nodemon": "^2.0.4"
+  }
+}
