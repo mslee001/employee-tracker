@@ -19,10 +19,11 @@
   },
   "homepage": "https://github.com/mslee001/employee-tracker#readme",
   "dependencies": {
+    "console.table": "^0.10.0",
     "inquirer": "^7.3.3",
     "mysql": "^2.18.1"
-    },
-    "devDependencies": {  
-      "nodemon": "^2.0.4"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
   }
 }
