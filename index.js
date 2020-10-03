@@ -1,7 +1,8 @@
-var mysql = require("mysql");
-var inquirer = require("inquirer");
+const mysql = require("mysql");
+const inquirer = require("inquirer");
+const cTable = require("console.table");
 
-var connection = mysql.createConnection({
+const connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
     user: "root",
@@ -9,7 +10,7 @@ var connection = mysql.createConnection({
     database: "employeeDB"
 });
 
-let employees = [            {
+let employees = [{
     name: "No Manager",
     value: null
 }];
@@ -115,7 +116,46 @@ function view() {
                 break;
 
             case "Employee":
+                viewEmployees();
+                break;
+        }
+    })
+}
+
+function viewEmployees() {
+    inquirer
+    .prompt({
+        name: "choice",
+        type: "list",
+        message: "Which would you like to view?",
+        choices: [
+            "View all Employees",
+            "View Employees by Manager",
+            "View Employees by Department",
+            "View Employees by Role"
+        ]
+    })
+    .then(function(answer) {
+        switch (answer.choice) {
+            case "View all Employees":
+                connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
+                    if (err) throw err;
+                    console.table(result);
+                    init();
+                })
                 
+                break;
+
+            case "View Employees by Manager":
+                
+                break;
+
+            case "View Employees by Department":
+                
+                break;
+
+            case "View Employees by Role":
+            
                 break;
         }
     })
