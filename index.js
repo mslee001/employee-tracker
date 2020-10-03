@@ -9,6 +9,9 @@ var connection = mysql.createConnection({
     database: "employeeDB"
 });
 
+let employees = ["No Manager"];
+let roles = [];
+
 connection.connect(function(err) {
     if (err) throw err;
     console.log("connected");
@@ -16,6 +19,9 @@ connection.connect(function(err) {
 })
 
 function init() {
+    employees = ["No Manager"];
+    roles = [];
+    
     inquirer
     .prompt({
         name: "action",
@@ -114,39 +120,59 @@ function update() {
 }
 
 function addEmployee() {
+    connection.query("SELECT first_name, last_name, id FROM employee", function(err, res) {
+        if(err) throw err;
+        for(i=0; i < res.length; i++) {
+            let name =
+            {    
+                name: res[i].first_name + " " + res[i].last_name,
+                value: res[i].id
+            }
+            employees.push(name);
+        }
+    });
+
+    connection.query("SELECT title, id FROM role", function(err,res) {
+        if(err) throw err;
+        for (i = 0; i < res.length; i++){
+            let role = 
+            {
+                name:res[i].title,
+                value:res[i].id
+            }
+            roles.push(role);
+        }
+    });
+    
     inquirer
     .prompt([
-    {
-        name: "employeeId",
-        type: "input",
-        message: "What is the employee's ID?"
-    },
-    {
-        name: "firstName",
-        type: "input",
-        message: "What is the employee's first name?"
-    },
-    {
-        name: "lastName",
-        type: "input",
-        message: "What is the employees last name?"
-    },
-    {
-        name: "employeeRole",
-        type: "input",
-        message: "What is the employee's role?"
-    },
-    {
-        name: "employeeManager",
-        type: "input",
-        message: "Who is the employee's Manager?"
-    }
+        {
+            name: "firstName",
+            type: "input",
+            message: "What is the employee's first name?"
+        },
+        {
+            name: "lastName",
+            type: "input",
+            message: "What is the employees last name?"
+        },
+        {
+            name: "employeeRole",
+            type: "list",
+            message: "Please select the employee role",
+            choices: roles
+        },
+        {
+            name: "employeeManager",
+            type: "list",
+            message: "Who is the employee's Manager?",
+            choices: employees
+        }
     ])
     .then(function(answer) {
         connection.query(
             "INSERT INTO employee SET ?",
             {
-                id: answer.employeeId,
                 first_name: answer.firstName,
                 last_name: answer.lastName,
                 role_id: answer.employeeRole,
@@ -155,17 +181,18 @@ function addEmployee() {
             function(err) {
                 if(err) throw err;
                 console.log("Employee successfully added");
-            }
-        )
+        });
+
         connection.query ("SELECT * FROM employee WHERE ?",{first_name:answer.firstName}, function(err,res) {
             if(err) throw err;
             console.table(res);
             init();
         })
-
-})
+                                    
+    })  
+                                 
 }
-
+                                    
 function addRole() {
     connection.query("Select name FROM department", function(err,res) {
         if(err) throw err;
@@ -245,3 +272,4 @@ function addDepartment() {
         })
     })
 }
+
