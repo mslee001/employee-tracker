@@ -9,7 +9,10 @@ var connection = mysql.createConnection({
     database: "employeeDB"
 });
 
-let employees = ["No Manager"];
+let employees = [            {
+    name: "No Manager",
+    value: null
+}];
 let roles = [];
 let departments = [];
 
@@ -20,7 +23,10 @@ connection.connect(function(err) {
 })
 
 function init() {
-    employees = ["No Manager"];
+    employees = [{
+        name: "No Manager",
+        value: null
+    }];
     roles = [];
 
     inquirer
