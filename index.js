@@ -167,7 +167,58 @@ function addEmployee() {
 }
 
 function addRole() {
+    connection.query("Select name FROM department", function(err,res) {
+        if(err) throw err;
 
+        let departments = [];
+        for (i = 0; i < res.length; i++){
+            departments.push(res[i].name);
+        }
+        
+        inquirer
+        .prompt([{
+            name: "role",
+            type: "input",
+            message: "What is the name of the role you would like to add?"
+        },
+        {
+            name: "salary",
+            type: "input",
+            message: "What is the salary for this role?"
+        },
+        {
+            name: "department",
+            type: "list",
+            message: "Please chose a department for this role",
+            choices: departments    
+        }
+        ])
+        .then(function(answer) {
+        connection.query("SELECT * FROM role WHERE ?", {title:answer.role}, function(err,res) {
+            if(err) throw err;
+            if (res.length > 0) {
+                console.log("That role already exists. Please try again.");
+                addRole();
+            } else {
+                connection.query("SELECT id FROM department WHERE ?", {name:answer.department}, function(err,res) {
+                    let deptId = res[0].id;
+                    connection.query("INSERT INTO role set ?", 
+                        {
+                            title:answer.role,
+                            salary:answer.salary,
+                            department_id:deptId
+                        }, 
+                        function(err) {
+                            if(err) throw err;
+                            console.log(`New Role "${answer.role}" successfully added`);
+                            init();
+                    })
+                })
+            }
+                
+        })
+    })
+    })
 }
 
 function addDepartment() {
@@ -180,15 +231,14 @@ function addDepartment() {
     .then(function(answer) {
         connection.query("SELECT * FROM department WHERE ?", {name:answer.department}, function(err,res) {
             if(err) throw err;
-            console.log(res)
-            console.log(answer.department);
             if (res.length > 0) {
                 console.log("That department already exists. Please try again.");
                 addDepartment();
             } else {
                 connection.query("INSERT INTO department set ?", {name:answer.department}, function(err) {
                         if(err) throw err;
-                        console.log(`New Department ${answer.department} successfully added`);
+                        console.log(`New Department "${answer.department}" successfully added`);
+                        init();
                     })
             }
                 
