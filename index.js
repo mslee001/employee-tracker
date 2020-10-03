@@ -11,6 +11,7 @@ var connection = mysql.createConnection({
 
 let employees = ["No Manager"];
 let roles = [];
+let departments = [];
 
 connection.connect(function(err) {
     if (err) throw err;
@@ -21,7 +22,7 @@ connection.connect(function(err) {
 function init() {
     employees = ["No Manager"];
     roles = [];
-    
+
     inquirer
     .prompt({
         name: "action",
@@ -194,13 +195,17 @@ function addEmployee() {
 }
                                     
 function addRole() {
-    connection.query("Select name FROM department", function(err,res) {
+    connection.query("Select name, id FROM department", function(err,res) {
         if(err) throw err;
-
-        let departments = [];
         for (i = 0; i < res.length; i++){
-            departments.push(res[i].name);
+            let department = 
+            {
+                name: res[i].name,
+                value: res[i].id
+            }
+            departments.push(department);
         }
+    });
         
         inquirer
         .prompt([{
@@ -227,25 +232,24 @@ function addRole() {
                 console.log("That role already exists. Please try again.");
                 addRole();
             } else {
-                connection.query("SELECT id FROM department WHERE ?", {name:answer.department}, function(err,res) {
-                    let deptId = res[0].id;
-                    connection.query("INSERT INTO role set ?", 
-                        {
-                            title:answer.role,
-                            salary:answer.salary,
-                            department_id:deptId
-                        }, 
-                        function(err) {
-                            if(err) throw err;
-                            console.log(`New Role "${answer.role}" successfully added`);
-                            init();
-                    })
+                connection.query("INSERT INTO role set ?", 
+                    {
+                        title:answer.role,
+                        salary:answer.salary,
+                        department_id:answer.department
+                    }, 
+                    function(err) {
+                        if(err) throw err;
+                        console.log(`New Role "${answer.role}" successfully added`);
+                        init();
+                
                 })
             }
                 
         })
     })
-    })
+
+    
 }
 
 function addDepartment() {
