@@ -10,10 +10,7 @@ const connection = mysql.createConnection({
     database: "employeeDB"
 });
 
-let employees = [{
-    name: "No Manager",
-    value: null
-}];
+let employees = [];
 let roles = [];
 let departments = [];
 
@@ -24,11 +21,44 @@ connection.connect(function(err) {
 })
 
 function init() {
-    employees = [{
-        name: "No Manager",
-        value: null
-    }];
-    roles = [];
+    //getting employee data from database to populate future inquirer questions
+    connection.query("SELECT * FROM employee", function(err, res) {
+        if(err) throw err;
+        for(i=0; i < res.length; i++) {
+            let name =
+            {    
+                name: res[i].first_name + " " + res[i].last_name,
+                value: res[i].id
+            }
+            employees.push(name);
+        }
+    });
+
+    //getting role data from database to populate future inquirer questions
+    connection.query("SELECT title, id FROM role", function(err,res) {
+        if(err) throw err;
+        for (i = 0; i < res.length; i++){
+            let role = 
+            {
+                name:res[i].title,
+                value:res[i].id
+            }
+            roles.push(role);
+        }
+    });
+
+    //getting department data from database to populate future inquirer questions
+    connection.query("Select name, id FROM department", function(err,res) {
+        if(err) throw err;
+        for (i = 0; i < res.length; i++){
+            let department = 
+            {
+                name: res[i].name,
+                value: res[i].id
+            }
+            departments.push(department);
+        }
+    });
 
     inquirer
     .prompt({
@@ -136,31 +166,44 @@ function view() {
 
 function update() {
 
+    inquirer
+    .prompt([
+        {
+            name: "employeeRoleChange",
+            type: "list",
+            message: "Which employee needs a role change?",
+            choices: employees
+        },
+        {
+            name: "updatedRole",
+            type: "list",
+            message: "What is the employee's new role?",
+            choices: roles
+        }
+    ])
+    .then(function(answer) {
+        connection.query(
+            "UPDATE employee SET ? WHERE ?",
+            [
+                {role_id: answer.updatedRole},
+                {id: answer.employeeRoleChange}
+            ],
+            function(err) {
+                if(err) throw err;
+                console.log("Employee successfully updated and now has the role of" + answer.updatedRole);
+        });
+        connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
+            if (err) throw err;
+            console.table(result);
+            init();
+        });                       
+    })  
 }
 
 function addEmployee() {
-    connection.query("SELECT first_name, last_name, id FROM employee", function(err, res) {
-        if(err) throw err;
-        for(i=0; i < res.length; i++) {
-            let name =
-            {    
-                name: res[i].first_name + " " + res[i].last_name,
-                value: res[i].id
-            }
-            employees.push(name);
-        }
-    });
-
-    connection.query("SELECT title, id FROM role", function(err,res) {
-        if(err) throw err;
-        for (i = 0; i < res.length; i++){
-            let role = 
-            {
-                name:res[i].title,
-                value:res[i].id
-            }
-            roles.push(role);
-        }
+    employees.push({
+        name: "No Manager",
+        value: null
     });
     
     inquirer
@@ -211,18 +254,6 @@ function addEmployee() {
 }
                                     
 function addRole() {
-    connection.query("Select name, id FROM department", function(err,res) {
-        if(err) throw err;
-        for (i = 0; i < res.length; i++){
-            let department = 
-            {
-                name: res[i].name,
-                value: res[i].id
-            }
-            departments.push(department);
-        }
-    });
-        
         inquirer
         .prompt([{
             name: "role",
