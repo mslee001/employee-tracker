@@ -36,23 +36,23 @@ function init() {
         type: "list",
         message: "What would you like to do?",
         choices: [
-            "Add department, role, or employee?",
-            "View departments, roles, or employees?",
-            "Update employee roles?",
+            "Add department, role, or employee",
+            "View departments, roles, or employees",
+            "Update employee roles",
             "exit"
         ]
     })
     .then(function(answer) {
         switch(answer.action) {
-            case "Add department, role, or employee?":
-                addition();
+            case "Add department, role, or employee":
+                add();
                 break;
 
-            case "View departments, roles, or employees?":
+            case "View departments, roles, or employees":
                 view();
                 break;
 
-            case "Update employee roles?":
+            case "Update employee roles":
                 update();
                 break;
 
@@ -63,7 +63,7 @@ function init() {
     });
 }
 
-function addition() {
+function add() {
     inquirer
     .prompt({
         name: "choice",
@@ -98,68 +98,40 @@ function view() {
     .prompt({
         name: "choice",
         type: "list",
-        message: "Would you like to view a department, role, or employee?",
+        message: "Would you like to view departments, roles, or employees?",
         choices: [
-            "Department",
-            "Role",
-            "Employee"
+            "Departments",
+            "Roles",
+            "Employees"
         ]
     })
     .then(function(answer) {
         switch (answer.choice) {
-            case "Department":
-                
+            case "Departments":
+                connection.query("SELECT name FROM department", function(err,result) {
+                    if (err) throw err;
+                    console.table(result);
+                    init();
+                });                
                 break;
 
-            case "Role":
-                
+            case "Roles":
+                connection.query("SELECT title FROM role", function(err,result) {
+                    if (err) throw err;
+                    console.table(result);
+                    init();
+                }); 
                 break;
 
-            case "Employee":
-                viewEmployees();
-                break;
-        }
-    })
-}
-
-function viewEmployees() {
-    inquirer
-    .prompt({
-        name: "choice",
-        type: "list",
-        message: "Which would you like to view?",
-        choices: [
-            "View all Employees",
-            "View Employees by Manager",
-            "View Employees by Department",
-            "View Employees by Role"
-        ]
-    })
-    .then(function(answer) {
-        switch (answer.choice) {
-            case "View all Employees":
+            case "Employees":
                 connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
                     if (err) throw err;
                     console.table(result);
                     init();
-                })
-                
-                break;
-
-            case "View Employees by Manager":
-                
-                break;
-
-            case "View Employees by Department":
-                
-                break;
-
-            case "View Employees by Role":
-            
+                });
                 break;
         }
     })
-
 }
 
 function update() {
@@ -229,13 +201,11 @@ function addEmployee() {
                 if(err) throw err;
                 console.log("Employee successfully added");
         });
-
-        connection.query ("SELECT * FROM employee WHERE ?",{first_name:answer.firstName}, function(err,res) {
-            if(err) throw err;
-            console.table(res);
+        connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
+            if (err) throw err;
+            console.table(result);
             init();
-        })
-                                    
+        });                       
     })  
                                  
 }
@@ -287,9 +257,12 @@ function addRole() {
                     function(err) {
                         if(err) throw err;
                         console.log(`New Role "${answer.role}" successfully added`);
-                        init();
-                
-                })
+                });
+                connection.query("SELECT title FROM role", function(err,result) {
+                    if (err) throw err;
+                    console.table(result);
+                    init();
+                }); 
             }
                 
         })
@@ -315,8 +288,12 @@ function addDepartment() {
                 connection.query("INSERT INTO department set ?", {name:answer.department}, function(err) {
                         if(err) throw err;
                         console.log(`New Department "${answer.department}" successfully added`);
-                        init();
-                    })
+                });
+                connection.query("SELECT name FROM department", function(err,result) {
+                    if (err) throw err;
+                    console.table(result);
+                    init();
+                });   
             }
                 
         })
