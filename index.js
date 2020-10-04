@@ -10,6 +10,7 @@ const connection = mysql.createConnection({
     database: "employeeDB"
 });
 
+//arrays to hold the data from database queries
 let employees = [];
 let roles = [];
 let departments = [];
@@ -17,9 +18,32 @@ let departments = [];
 connection.connect(function(err) {
     if (err) throw err;
     console.log("connected");
-    init();
+    getStarted();
 })
 
+//function to start of the program
+function getStarted() {
+    console.log(`
+================================================================
+===      ______                 _                            ===
+===     |   __/ _ __ ___  _ __ | | ___  _   _  ___  ___      ===
+===     |   _| |  _ '  _ \\  _ \\| |/ _ \\| | | |/ _ \\/ _ \\     ===
+===     |  |___  | | | | | |_) | | (_) | |_| |  __/  __/     ===
+===     |______|_| |_| |_|  __/|_|\\___/\\___, |\\___|\\___|     ===
+===                      |__|           |___/                ===
+===                                                          ===
+===      __  __                                              ===
+===     |  \\/  | __ _ _ __   __ _  __ _  ___ _ __            ===
+===     | |\\/| |/ _' | '_ \\ / _' |/ _' |/ _ \\ '__|   (\\_/)   ===
+===     | |  | | (_| | | | | (_| | (_| |  __/ |      (O.o)   ===
+===     |_|  |_|\\__,_|_| |_|\\__,_|\\__, |\\___|_|      (> <)   ===
+===                               |___/                      ===
+================================================================
+    `);
+    init();
+}
+
+//initializes the initial database queries and first set of inquirer questions
 function init() {
     //getting employee data from database to populate future inquirer questions
     connection.query("SELECT * FROM employee", function(err, res) {
@@ -68,8 +92,9 @@ function init() {
         choices: [
             "Add department, role, or employee",
             "View departments, roles, or employees",
-            "Update employee roles",
-            "exit"
+            "Update employee role",
+            "Update employee manager",
+            "Exit"
         ]
     })
     .then(function(answer) {
@@ -82,17 +107,22 @@ function init() {
                 view();
                 break;
 
-            case "Update employee roles":
-                update();
+            case "Update employee role":
+                updateRole();
                 break;
 
-            case "exit":
+            case "Update employee manager":
+                updateManager();
+                break;
+
+            case "Exit":
                 connection.end();
                 break;
         }
     });
 }
 
+//inquirer questions to give the user options on what they'd like to add
 function add() {
     inquirer
     .prompt({
@@ -123,6 +153,7 @@ function add() {
 
 }
 
+//function to view either the departments, roles, or employees
 function view() {
     inquirer
     .prompt({
@@ -140,6 +171,8 @@ function view() {
             case "Departments":
                 connection.query("SELECT name FROM department", function(err,result) {
                     if (err) throw err;
+                    console.log(`
+                    `);
                     console.table(result);
                     init();
                 });                
@@ -148,14 +181,18 @@ function view() {
             case "Roles":
                 connection.query("SELECT title FROM role", function(err,result) {
                     if (err) throw err;
+                    console.log(`
+                    `);
                     console.table(result);
                     init();
                 }); 
                 break;
 
             case "Employees":
-                connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
+                connection.query("SELECT employee.id, employee.first_name, employee.last_name, role.title as role, role.salary, department.name as department, manager_id as manager FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
                     if (err) throw err;
+                    console.log(`
+                    `);
                     console.table(result);
                     init();
                 });
@@ -164,7 +201,8 @@ function view() {
     })
 }
 
-function update() {
+//function to update the employee role
+function updateRole() {
 
     inquirer
     .prompt([
@@ -190,7 +228,7 @@ function update() {
             ],
             function(err) {
                 if(err) throw err;
-                console.log("Employee successfully updated and now has the role of" + answer.updatedRole);
+                console.log("Employee's role successfully updated");
         });
         connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
             if (err) throw err;
@@ -200,6 +238,46 @@ function update() {
     })  
 }
 
+//function to udpate the employee manager
+function updateManager() {
+
+    inquirer
+    .prompt([
+        {
+            name: "employeeManagerChange",
+            type: "list",
+            message: "Which employee needs a manager change?",
+            choices: employees
+        },
+        {
+            name: "updatedManager",
+            type: "list",
+            message: "Who is the employee's new Manager?",
+            choices: employees
+        }
+    ])
+    .then(function(answer) {
+        connection.query(
+            "UPDATE employee SET ? WHERE ?",
+            [
+                {manager_id: answer.updatedManager},
+                {id: answer.employeeManagerChange}
+            ],
+            function(err) {
+                if(err) throw err;
+                console.log(`Employee's manager successfully updated
+                
+                `);
+        });
+        connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
+            if (err) throw err;
+            console.table(result);
+            init();
+        });                       
+    })  
+}
+
+//function to add new employees
 function addEmployee() {
     employees.push({
         name: "No Manager",
@@ -242,17 +320,15 @@ function addEmployee() {
             },
             function(err) {
                 if(err) throw err;
-                console.log("Employee successfully added");
-        });
-        connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
-            if (err) throw err;
-            console.table(result);
-            init();
-        });                       
-    })  
+                console.log(`Employee successfully added
+                `);
+                init();
+        });                     
+    });
                                  
 }
-                                    
+
+//function to add new roles
 function addRole() {
         inquirer
         .prompt([{
@@ -287,21 +363,16 @@ function addRole() {
                     }, 
                     function(err) {
                         if(err) throw err;
-                        console.log(`New Role "${answer.role}" successfully added`);
+                        console.log(`New Role "${answer.role}" successfully added
+                        `);
+                        init();
                 });
-                connection.query("SELECT title FROM role", function(err,result) {
-                    if (err) throw err;
-                    console.table(result);
-                    init();
-                }); 
             }
-                
-        })
-    })
-
-    
+        });
+    });
 }
 
+//function to add new departments
 function addDepartment() {
     inquirer
     .prompt({
@@ -318,16 +389,12 @@ function addDepartment() {
             } else {
                 connection.query("INSERT INTO department set ?", {name:answer.department}, function(err) {
                         if(err) throw err;
-                        console.log(`New Department "${answer.department}" successfully added`);
-                });
-                connection.query("SELECT name FROM department", function(err,result) {
-                    if (err) throw err;
-                    console.table(result);
-                    init();
-                });   
+                        console.log(`New Department "${answer.department}" successfully added
+                        `);
+                        init();
+                }); 
             }
-                
-        })
-    })
+        });
+    });
 }
 
