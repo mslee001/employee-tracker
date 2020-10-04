@@ -92,6 +92,7 @@ function init() {
         choices: [
             "Add department, role, or employee",
             "View departments, roles, or employees",
+            "Delete departments, roles, or employees",
             "Update employee role",
             "Update employee manager",
             "Exit"
@@ -107,6 +108,10 @@ function init() {
                 view();
                 break;
 
+            case "Delete departments, roles, or employees":
+                del();
+                break;
+
             case "Update employee role":
                 updateRole();
                 break;
@@ -114,6 +119,7 @@ function init() {
             case "Update employee manager":
                 updateManager();
                 break;
+
 
             case "Exit":
                 connection.end();
@@ -169,7 +175,7 @@ function view() {
     .then(function(answer) {
         switch (answer.choice) {
             case "Departments":
-                connection.query("SELECT name FROM department", function(err,result) {
+                connection.query("SELECT name as Departments FROM department", function(err,result) {
                     if (err) throw err;
                     console.log(`
                     `);
@@ -179,7 +185,7 @@ function view() {
                 break;
 
             case "Roles":
-                connection.query("SELECT title FROM role", function(err,result) {
+                connection.query("SELECT role.title as Role, department.name as Department FROM role LEFT JOIN department on role.department_id=department.id", function(err,result) {
                     if (err) throw err;
                     console.log(`
                     `);
@@ -199,6 +205,37 @@ function view() {
                 break;
         }
     })
+}
+
+//inquirer questions to give the user options on what they'd like to delete
+function del() {
+    inquirer
+    .prompt({
+        name: "choice",
+        type: "list",
+        message: "Would you like to delete a department, role, or employee?",
+        choices: [
+            "Department",
+            "Role",
+            "Employee"
+        ]
+    })
+    .then(function(answer) {
+        switch (answer.choice) {
+            case "Department":
+                deleteDepartment();
+                break;
+
+            case "Role":
+                deleteRole();
+                break;
+
+            case "Employee":
+                deleteEmployee();
+                break;
+        }
+    })
+
 }
 
 //function to update the employee role
@@ -238,7 +275,7 @@ function updateRole() {
     })  
 }
 
-//function to udpate the employee manager
+//function to update the employee manager
 function updateManager() {
 
     inquirer
@@ -395,6 +432,61 @@ function addDepartment() {
                 }); 
             }
         });
+    });
+}
+
+//function to delete employees
+function deleteEmployee() {
+    inquirer
+    .prompt({
+        name: "delEmployee",
+        type: "list",
+        message: "What is the name of the employee you would like to delete?",
+        choices: employees
+    })
+    .then(function(answer) {
+        connection.query("DELETE FROM employee WHERE ?", {id:answer.delEmployee}, function(err) {
+            if(err) throw err;
+            console.log(`Employee has been deleted from the database.
+            `);
+            init();
+        }); 
+    });
+}
+
+function deleteDepartment() {
+    inquirer
+    .prompt({
+        name: "delDepartment",
+        type: "list",
+        message: "What is the name of the department you would like to delete?",
+        choices: departments
+    })
+    .then(function(answer) {
+        connection.query("DELETE FROM department WHERE ?", {id:answer.delDepartment}, function(err) {
+            if(err) throw err;
+            console.log(`Department has been deleted from the database.
+            `);
+            init();
+        }); 
+    });
+}
+
+function deleteRole() {
+    inquirer
+    .prompt({
+        name: "delRole",
+        type: "list",
+        message: "What is the name of the role you would like to delete?",
+        choices: roles
+    })
+    .then(function(answer) {
+        connection.query("DELETE FROM role WHERE ?", {id:answer.delRole}, function(err) {
+            if(err) throw err;
+            console.log(`Role has been deleted from the database.
+            `);
+            init();
+        }); 
     });
 }
 
