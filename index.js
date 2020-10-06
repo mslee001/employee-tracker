@@ -45,6 +45,9 @@ function getStarted() {
 
 //initializes the initial database queries and first set of inquirer questions
 function init() {
+    employees = [];
+    roles = [];
+    departments = [];
     //getting employee data from database to populate future inquirer questions
     connection.query("SELECT * FROM employee", function(err, res) {
         if(err) throw err;
@@ -268,13 +271,9 @@ function updateRole() {
                 console.log(`
                 Employee's role successfully updated
                 `);
-        });
-        connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
-            if (err) throw err;
-            console.table(result);
-            init();
+                init();
         });                       
-    })  
+    });                       
 }
 
 //function to update the employee manager
@@ -307,13 +306,10 @@ function updateManager() {
                 console.log(`
                 Employee's manager successfully updated
                 `);
-        });
-        connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
-            if (err) throw err;
-            console.table(result);
-            init();
-        });                       
-    })  
+                init();
+        });                     
+    });                       
+  
 }
 
 //function to add new employees
@@ -444,6 +440,7 @@ function addDepartment() {
 function deleteEmployee() {
     len = employees.length;
     employees = employees.slice(0,len);
+
     inquirer
     .prompt({
         name: "delEmployee",
