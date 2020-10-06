@@ -16,7 +16,7 @@ npm i
 
 ## Video Walk-thru
 
-![Employee Manager](Assets/employee-manager.gif)
+<img src="Assets/employee-manager.gif">
 
 ## Questions
 If you have any questions about this repository, open an issue or contact me directly at megtej@gmail.com. You can find more of my work at [mslee001](https://github.com/mslee001).
