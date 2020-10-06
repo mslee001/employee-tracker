@@ -19,7 +19,7 @@ connection.connect(function(err) {
     if (err) throw err;
     console.log("connected");
     getStarted();
-})
+});
 
 //function to start of the program
 function getStarted() {
@@ -265,7 +265,9 @@ function updateRole() {
             ],
             function(err) {
                 if(err) throw err;
-                console.log("Employee's role successfully updated");
+                console.log(`
+                Employee's role successfully updated
+                `);
         });
         connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
             if (err) throw err;
@@ -302,8 +304,8 @@ function updateManager() {
             ],
             function(err) {
                 if(err) throw err;
-                console.log(`Employee's manager successfully updated
-                
+                console.log(`
+                Employee's manager successfully updated
                 `);
         });
         connection.query("SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee LEFT JOIN role on employee.role_id=role.id LEFT JOIN department on role.department_id=department.id", function(err,result) {
@@ -357,7 +359,8 @@ function addEmployee() {
             },
             function(err) {
                 if(err) throw err;
-                console.log(`Employee successfully added
+                console.log(`
+                Employee successfully added
                 `);
                 init();
         });                     
@@ -400,7 +403,8 @@ function addRole() {
                     }, 
                     function(err) {
                         if(err) throw err;
-                        console.log(`New Role "${answer.role}" successfully added
+                        console.log(`
+                        New Role "${answer.role}" successfully added
                         `);
                         init();
                 });
@@ -426,7 +430,8 @@ function addDepartment() {
             } else {
                 connection.query("INSERT INTO department set ?", {name:answer.department}, function(err) {
                         if(err) throw err;
-                        console.log(`New Department "${answer.department}" successfully added
+                        console.log(`
+                        New Department "${answer.department}" successfully added
                         `);
                         init();
                 }); 
@@ -437,6 +442,8 @@ function addDepartment() {
 
 //function to delete employees
 function deleteEmployee() {
+    len = employees.length;
+    employees = employees.slice(0,len);
     inquirer
     .prompt({
         name: "delEmployee",
@@ -447,13 +454,15 @@ function deleteEmployee() {
     .then(function(answer) {
         connection.query("DELETE FROM employee WHERE ?", {id:answer.delEmployee}, function(err) {
             if(err) throw err;
-            console.log(`Employee has been deleted from the database.
+            console.log(`
+            Employee has been deleted from the database.
             `);
             init();
         }); 
     });
 }
 
+//function to delete departments
 function deleteDepartment() {
     inquirer
     .prompt({
@@ -465,13 +474,15 @@ function deleteDepartment() {
     .then(function(answer) {
         connection.query("DELETE FROM department WHERE ?", {id:answer.delDepartment}, function(err) {
             if(err) throw err;
-            console.log(`Department has been deleted from the database.
+            console.log(`
+            Department has been deleted from the database.
             `);
             init();
         }); 
     });
 }
 
+//function to delete roles
 function deleteRole() {
     inquirer
     .prompt({
@@ -483,7 +494,8 @@ function deleteRole() {
     .then(function(answer) {
         connection.query("DELETE FROM role WHERE ?", {id:answer.delRole}, function(err) {
             if(err) throw err;
-            console.log(`Role has been deleted from the database.
+            console.log(`
+            Role has been deleted from the database.
             `);
             init();
         }); 
